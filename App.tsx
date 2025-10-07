@@ -474,15 +474,56 @@ const addStampAndLogoToImage = (base64Image: string, stampData: StampData | null
   };
 
   const handleExportToCsv = () => {
-    if (!projectPlan) return;
+    if (!projectPlan || !financials || !projectDetails) return;
 
     const escapeCsvCell = (value: any) => {
         const stringValue = String(value ?? '').replace(/"/g, '""').replace(/\n/g, ' ');
         return `"${stringValue}"`;
     };
+
+    const formatNumberForCsv = (value: number) => {
+        return value.toFixed(2).replace('.', ',');
+    };
     
     let csvContent = `\uFEFF`;
 
+    // 1. Project Info
+    csvContent += 'INFORMAÇÕES GERAIS DO PROJETO\n';
+    const projectInfo = [
+      ['Nome do Projeto', financials.projectName],
+      ['Período de Execução', `${projectPlan.projectStartDate} a ${projectPlan.projectEndDate}`],
+      ['Área Total Construída', `${projectDetails.totalArea} m²`],
+      ...(projectDetails.numberOfUnits > 1 ? [
+        ['Número de Unidades', projectDetails.numberOfUnits],
+        ['Tipo de Unidade', projectDetails.unitType || 'N/A'],
+        ['Área por Unidade', `${projectDetails.unitArea} m²`]
+      ] : []),
+      ['Estilo Arquitetônico', projectDetails.style],
+      ['Quartos por Unidade', projectDetails.bedrooms || 'N/A'],
+      ['Suítes por Unidade', projectDetails.suites || 'N/A'],
+      ['Banheiros por Unidade', projectDetails.bathrooms || 'N/A']
+    ];
+    projectInfo.forEach(row => {
+        csvContent += `${escapeCsvCell(row[0])};${escapeCsvCell(row[1])}\n`;
+    });
+    csvContent += '\n\n';
+
+    // 2. Financial Summary
+    csvContent += 'RESUMO FINANCEIRO\n';
+    const financialSummary = [
+      ['Custo Direto Total (Materiais + M.O.)', formatNumberForCsv(financials.directCost)],
+      ['Taxa BDI Aplicada (%)', financials.bdiRate.toFixed(2).replace('.', ',')],
+      ['Preço Final de Venda', formatNumberForCsv(financials.finalPrice)],
+      ['Lucro Líquido Estimado', formatNumberForCsv(financials.profitValue)],
+      ['Impostos Estimados', formatNumberForCsv(financials.taxAmount)],
+      ['ROI (Retorno sobre Investimento) (%)', financials.roi.toFixed(2).replace('.', ',')]
+    ];
+    financialSummary.forEach(row => {
+        csvContent += `${escapeCsvCell(row[0])};${escapeCsvCell(row[1])}\n`;
+    });
+    csvContent += '\n\n';
+
+    // 3. Task Plan
     csvContent += 'PLANO DE TAREFAS\n';
     const taskHeaders = ['ID', 'Fase', 'Nome da Tarefa', 'Descrição', 'Responsável', 'Data de Início', 'Data de Término', 'Status', 'Dependências', 'Custo Materiais (R$)', 'Custo Mão de Obra (R$)', 'Custo Total (R$)', 'Notas'];
     csvContent += taskHeaders.join(';') + '\n';
@@ -490,25 +531,58 @@ const addStampAndLogoToImage = (base64Image: string, stampData: StampData | null
         const row = [
             task.id, task.phase, task.taskName, task.description, task.assignee,
             task.startDate, task.endDate, task.status, task.dependencies,
-            task.costMaterials.toFixed(2).replace('.', ','),
-            task.costLabor.toFixed(2).replace('.', ','),
-            (task.costMaterials + task.costLabor).toFixed(2).replace('.', ','),
+            formatNumberForCsv(task.costMaterials),
+            formatNumberForCsv(task.costLabor),
+            formatNumberForCsv(task.costMaterials + task.costLabor),
             task.notes
         ].map(escapeCsvCell).join(';');
         csvContent += row + '\n';
     });
-
     csvContent += '\n\n';
 
-    csvContent += 'RESUMO DO ORÇAMENTO\n';
+    // 4. ABC Curve
+    const tasksWithTotalCost = projectPlan.tasks.map(t => ({
+      ...t,
+      totalCost: t.costMaterials + t.costLabor,
+    })).filter(t => t.totalCost > 0);
+    const grandTotal = tasksWithTotalCost.reduce((sum, t) => sum + t.totalCost, 0);
+    if (grandTotal > 0) {
+      const sortedTasks = tasksWithTotalCost.sort((a, b) => b.totalCost - a.totalCost);
+      let cumulativeCost = 0;
+      const classifiedTasks = sortedTasks.map(t => {
+        cumulativeCost += t.totalCost;
+        const cumulativePercent = (cumulativeCost / grandTotal) * 100;
+        const weight = (t.totalCost / grandTotal) * 100;
+        let abcClass: 'A' | 'B' | 'C' = 'C';
+        if (cumulativePercent <= 80) abcClass = 'A';
+        else if (cumulativePercent <= 95) abcClass = 'B';
+        return { ...t, weight, cumulativePercent, abcClass };
+      });
+      
+      csvContent += 'CURVA ABC DE CUSTOS\n';
+      const abcHeaders = ['Classe', 'Item (Tarefa)', 'Custo (R$)', 'Peso (%)', 'Acumulado (%)'];
+      csvContent += abcHeaders.join(';') + '\n';
+      classifiedTasks.forEach(task => {
+          const row = [
+              task.abcClass, task.taskName, formatNumberForCsv(task.totalCost),
+              task.weight.toFixed(2).replace('.', ','),
+              task.cumulativePercent.toFixed(2).replace('.', ',')
+          ].map(escapeCsvCell).join(';');
+          csvContent += row + '\n';
+      });
+      csvContent += '\n\n';
+    }
+
+    // 5. Budget Summary (different from financial summary, this is the user's input budget)
+    csvContent += 'RESUMO DO ORÇAMENTO (VERBA INICIAL)\n';
     csvContent += 'Categoria;Valor (R$)\n';
-    csvContent += `"Verba Total";"${projectPlan.budget.total.toFixed(2).replace('.', ',')}"\n`;
-    csvContent += `"Custo de Materiais";"${projectPlan.budget.materials.toFixed(2).replace('.', ',')}"\n`;
-    csvContent += `"Custo de Mão de Obra";"${projectPlan.budget.labor.toFixed(2).replace('.', ',')}"\n`;
-    csvContent += `"Taxa do Gestor";"${projectPlan.budget.managerFee.toFixed(2).replace('.', ',')}"\n`;
-
+    csvContent += `"Verba Total Informada";"${formatNumberForCsv(projectPlan.budget.total)}"\n`;
+    csvContent += `"Custo de Materiais (Distribuído)";"${formatNumberForCsv(projectPlan.budget.materials)}"\n`;
+    csvContent += `"Custo de Mão de Obra (Distribuído)";"${formatNumberForCsv(projectPlan.budget.labor)}"\n`;
+    csvContent += `"Taxa do Gestor (Distribuído)";"${formatNumberForCsv(projectPlan.budget.managerFee)}"\n`;
     csvContent += '\n\n';
 
+    // 6. Material Delivery Schedule
     csvContent += 'CRONOGRAMA DE ENTREGA DE MATERIAIS\n';
     const materialHeaders = ['ID', 'Material', 'Fornecedor', 'Data de Entrega', 'ID Tarefa Relacionada', 'Status'];
     csvContent += materialHeaders.join(';') + '\n';
@@ -516,16 +590,26 @@ const addStampAndLogoToImage = (base64Image: string, stampData: StampData | null
         const row = [item.id, item.materialName, item.supplier, item.deliveryDate, item.relatedTaskId, item.status].map(escapeCsvCell).join(';');
         csvContent += row + '\n';
     });
-    
     csvContent += '\n\n';
 
+    // 7. Payment Schedule
     csvContent += 'CRONOGRAMA DE PAGAMENTOS\n';
     const paymentHeaders = ['ID', 'Descrição', 'Vencimento', 'Categoria', 'Status', 'Valor (R$)'];
     csvContent += paymentHeaders.join(';') + '\n';
     projectPlan.paymentSchedule.forEach(item => {
-        const row = [item.id, item.description, item.dueDate, item.category, item.status, item.amount.toFixed(2).replace('.', ',')].map(escapeCsvCell).join(';');
+        const row = [item.id, item.description, item.dueDate, item.category, item.status, formatNumberForCsv(item.amount)].map(escapeCsvCell).join(';');
         csvContent += row + '\n';
     });
+    csvContent += '\n\n';
+
+    // 8. Descriptive Memorial
+    if (descriptiveMemorial) {
+        csvContent += 'MEMORIAL DESCRITIVO\n';
+        // Keep newlines for the memorial by quoting the entire block.
+        const escapedMemorial = `"${descriptiveMemorial.replace(/"/g, '""')}"`;
+        csvContent += escapedMemorial + '\n\n';
+    }
+
 
     const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
     const link = document.createElement('a');
@@ -599,7 +683,7 @@ const addStampAndLogoToImage = (base64Image: string, stampData: StampData | null
             
             {error && <div className="container mx-auto mt-8 p-4 bg-red-100 text-red-700 border border-red-200 rounded-lg text-center max-w-4xl">{error}</div>}
 
-            {projectPlan && financials && (
+            {projectPlan && financials && projectDetails && (
             <div id="results" className="max-w-7xl mx-auto mt-12 space-y-8">
                 <div className="bg-white p-4 md:p-6 rounded-2xl border border-slate-200 shadow-xl">
                     <div className="flex flex-wrap justify-between items-center gap-4">
