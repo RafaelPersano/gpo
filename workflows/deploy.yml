@@ -1,0 +1,37 @@
+# Nome do seu fluxo de trabalho, aparecerá na aba "Actions" do GitHub
+name: Deploy Supabase Edge Functions
+
+# Gatilho: Este fluxo de trabalho rodará sempre que houver um push na branch 'main'
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch: # Permite rodar manualmente também
+
+# Define as permissões que o fluxo de trabalho precisa
+permissions:
+  contents: read
+
+# Tarefas a serem executadas
+jobs:
+  deploy:
+    # A máquina virtual que será usada
+    runs-on: ubuntu-latest
+
+    # Passos da tarefa
+    steps:
+      # 1. Pega o código mais recente do seu repositório
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      # 2. Configura a CLI do Supabase e se autentica
+      # Esta é uma "Action" oficial do Supabase que simplifica tudo
+      - name: Setup Supabase CLI
+        uses: supabase/cli-action@v0.4.0
+        with:
+          # Usa o token de acesso que você guardou nos segredos do GitHub
+          access-token: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
+
+      # 3. Executa o comando de deploy das funções
+      - name: Deploy Edge Functions
+        run: npx supabase functions deploy --project-ref ${{ secrets.SUPABASE_PROJECT_ID }} --no-verify-jwt
