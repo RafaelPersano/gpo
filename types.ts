@@ -1,4 +1,6 @@
 
+export type Tab = 'overview' | 'proposal' | 'tables' | 'analysis' | 'spreadsheet' | 'excel' | 'admin';
+
 export interface ConstructionTask {
   id: number;
   phase: string;
@@ -39,24 +41,6 @@ export interface Budget {
     managerFee: number;
 }
 
-export interface RoomDimension {
-    name: string;
-    area: number;
-}
-
-export interface ProjectDetails {
-    totalArea: number; // Soma da área de todas as unidades
-    unitArea: number; // Área de uma única unidade
-    numberOfUnits: number; // Número de unidades no projeto (1 para unidade única)
-    unitType?: string; // ex: 'casa', 'apartamento'
-    bedrooms?: number; // por unidade
-    suites?: number; // por unidade
-    bathrooms?: number; // por unidade, INCLUINDO as suítes
-    floors?: number; // por unidade
-    style: string;
-    roomDimensions?: RoomDimension[];
-}
-
 export interface ConstructionPlan {
     projectStartDate: string; // YYYY-MM-DD
     projectEndDate: string; // YYYY-MM-DD
@@ -85,4 +69,13 @@ export interface MarketingMaterials {
     linkedInPost: string;
     ctas: string[];
     landingPageContent: LandingPageContent;
+}
+
+export interface UserProfile {
+  id: string;
+  full_name: string;
+  email: string;
+  role: 'admin' | 'user';
+  created_at: string;
+  token_balance: number;
 }
