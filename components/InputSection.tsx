@@ -1,6 +1,5 @@
-
 import React, { useState, useEffect } from 'react';
-import { WandIcon } from './icons/WandIcon.tsx';
+import { WandIcon } from './icons/WandIcon';
 
 interface InputSectionProps {
   userInput: string;

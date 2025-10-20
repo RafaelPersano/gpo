@@ -1,8 +1,8 @@
 import React, { useState, useMemo } from 'react';
-import { costBreakdownData } from '../data/costBreakdownData.ts';
-import { PieChartIcon } from './icons/PieChartIcon.tsx';
-import { SpreadsheetIcon } from './icons/SpreadsheetIcon.tsx';
-import PieChart from './PieChart.tsx';
+import { costBreakdownData } from '../data/costBreakdownData';
+import { PieChartIcon } from './icons/PieChartIcon';
+import { SpreadsheetIcon } from './icons/SpreadsheetIcon';
+import PieChart from './PieChart';
 
 const CostBreakdownCalculator: React.FC = () => {
     const [totalCost, setTotalCost] = useState<string>('207254.00');
@@ -77,7 +77,7 @@ const CostBreakdownCalculator: React.FC = () => {
     };
 
     return (
-        <div className="max-w-5xl mx-auto bg-white border border-slate-200 rounded-2xl shadow-xl p-6 md:p-8">
+        <div className="bg-white border border-slate-200 rounded-2xl shadow-xl p-6 md:p-8">
             <h3 className="text-2xl font-bold text-slate-800 mb-2 flex items-center">
                 <PieChartIcon className="w-6 h-6 mr-3 text-blue-600" />
                 Calculadora de Custo por Etapa da Obra

@@ -1,17 +1,18 @@
 import React from 'react';
-import { TasksIcon } from './icons/TasksIcon.tsx';
-import { CashIcon } from './icons/CashIcon.tsx';
-import { ChartIcon } from './icons/ChartIcon.tsx';
-import { ProposalIcon } from './icons/ProposalIcon.tsx';
-import { ZapIcon } from './icons/ZapIcon.tsx';
-import { RocketIcon } from './icons/RocketIcon.tsx';
-import { TargetIcon } from './icons/TargetIcon.tsx';
+import { TasksIcon } from './icons/TasksIcon';
+import { CashIcon } from './icons/CashIcon';
+import { ChartIcon } from './icons/ChartIcon';
+import { ProposalIcon } from './icons/ProposalIcon';
+import { ZapIcon } from './icons/ZapIcon';
+import { RocketIcon } from './icons/RocketIcon';
+import { TargetIcon } from './icons/TargetIcon';
 
 interface MarketingPageProps {
   onStart: () => void;
+  isBackendConfigured: boolean;
 }
 
-const MarketingPage: React.FC<MarketingPageProps> = ({ onStart }) => {
+const MarketingPage: React.FC<MarketingPageProps> = ({ onStart, isBackendConfigured }) => {
     
   const FeatureCard: React.FC<{ icon: React.ReactNode; title: string; children: React.ReactNode }> = ({ icon, title, children }) => (
     <div className="bg-white p-6 rounded-lg border border-slate-200 shadow-sm transition-all hover:shadow-lg hover:border-blue-300">
@@ -25,21 +26,30 @@ const MarketingPage: React.FC<MarketingPageProps> = ({ onStart }) => {
 
   return (
     <div>
+      {!isBackendConfigured && (
+        <div className="bg-amber-100 border-b-2 border-amber-200 text-amber-900 px-4 py-3 text-center text-sm sticky top-[73px] z-30">
+          <div className="container mx-auto">
+            <p>
+              <strong className="font-semibold">Modo de Demonstração:</strong> A conexão com o backend não foi configurada. Login e salvamento estão desativados. <strong>Clique em "Acessar Ferramenta" para ver as instruções de configuração.</strong>
+            </p>
+          </div>
+        </div>
+      )}
       {/* Hero Section */}
       <section className="text-center py-20 md:py-32 bg-white">
         <div className="container mx-auto px-6">
           <h1 className="text-4xl md:text-6xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-slate-900 to-slate-600 leading-tight">
-            A Inteligência Artificial para seus Planos de Obra
+            Gerador Inteligente de Planilhas de Obra
           </h1>
           <p className="mt-6 text-lg md:text-xl text-slate-600 max-w-3xl mx-auto">
-            Transforme simples descrições de projetos em planos de obra, orçamentos, propostas e materiais de marketing em minutos. Otimize seu tempo e impressione seus clientes.
+            Transforme a descrição do seu projeto em uma planilha de Excel completa para gerenciamento de obras, com tarefas, custos e cronogramas, tudo em minutos.
           </p>
           <div className="mt-10">
             <button
               onClick={onStart}
               className="px-8 py-4 bg-blue-600 text-white font-bold rounded-lg shadow-lg hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-all duration-300 transform hover:scale-105 text-lg"
             >
-              Comece a Planejar Agora &rarr;
+              Gerar Minha Planilha Agora &rarr;
             </button>
           </div>
         </div>
@@ -110,7 +120,7 @@ const MarketingPage: React.FC<MarketingPageProps> = ({ onStart }) => {
                 onClick={onStart}
                 className="px-8 py-4 bg-white text-blue-600 font-bold rounded-lg shadow-lg hover:bg-slate-100 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-slate-800 focus:ring-white transition-all duration-300 transform hover:scale-105 text-lg"
                 >
-                Gerar meu Primeiro Plano de Obra
+                Gerar Minha Primeira Planilha
                 </button>
             </div>
         </div>

@@ -1,6 +1,6 @@
 import React from 'react';
 
-export const TrendingUpIcon: React.FC<React.SVGProps<SVGSVGElement>> = (props) => (
+export const TrashIcon: React.FC<React.SVGProps<SVGSVGElement>> = (props) => (
   <svg 
     {...props}
     xmlns="http://www.w3.org/2000/svg" 
@@ -13,7 +13,7 @@ export const TrendingUpIcon: React.FC<React.SVGProps<SVGSVGElement>> = (props) =
     strokeLinecap="round" 
     strokeLinejoin="round"
   >
-    <polyline points="23 6 13.5 15.5 8.5 10.5 1 18" />
-    <polyline points="17 6 23 6 23 12" />
+    <polyline points="3 6 5 6 21 6" />
+    <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" />
   </svg>
 );

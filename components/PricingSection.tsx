@@ -1,12 +1,11 @@
-
 import React from 'react';
 import { SliderIcon } from './icons/SliderIcon.tsx';
 
 interface Financials {
     directCost: number;
     finalPrice: number;
-    taxAmount: number;
-    profitValue: number;
+    taxesOnRevenueValue: number;
+    netProfitValue: number;
     bdiRate: number;
     salePriceString: string;
     costString: string;
@@ -60,7 +59,7 @@ const PricingSection: React.FC<PricingSectionProps> = ({ financials, netProfitMa
                                     max="40"
                                     step="0.5"
                                     value={netProfitMargin}
-                                    onChange={(e) => onMarginChange(parseFloat(e.target.value))}
+                                    onChange={(e) => onMarginChange(parseFloat(e.target.value) || 0)}
                                     className="w-full rounded-md border-slate-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm pr-8"
                                 />
                                 <span className="absolute inset-y-0 right-0 flex items-center pr-3 text-slate-500">%</span>
@@ -70,28 +69,17 @@ const PricingSection: React.FC<PricingSectionProps> = ({ financials, netProfitMa
                 </div>
 
                 {/* Results */}
-                <div className="bg-slate-50 p-6 rounded-lg border border-slate-200 space-y-3">
-                    <h3 className="text-lg font-bold text-slate-700 mb-3">Resumo Financeiro</h3>
-                    <div className="flex justify-between text-sm">
-                        <span className="text-slate-600">Custo Direto da Obra:</span>
-                        <span className="font-semibold text-slate-800">{financials.costString}</span>
-                    </div>
-                    <div className="flex justify-between text-sm">
-                        <span className="text-slate-600">Taxa BDI Aplicada:</span>
-                        <span className="font-semibold text-slate-800">{financials.bdiRate.toFixed(2)}%</span>
-                    </div>
-                     <div className="flex justify-between text-sm">
-                        <span className="text-slate-600">Lucro Líquido (Valor):</span>
-                        <span className="font-semibold text-slate-800">{formatCurrency(financials.profitValue)}</span>
-                    </div>
-                     <div className="flex justify-between text-sm">
-                        <span className="text-slate-600">Impostos Estimados:</span>
-                        <span className="font-semibold text-slate-800">{formatCurrency(financials.taxAmount)}</span>
-                    </div>
-                     <div className="border-t border-slate-200 my-2 !mt-4 !mb-2"></div>
-                     <div className="flex justify-between items-center text-lg mt-2 p-3 bg-green-100 rounded-lg">
-                        <span className="font-extrabold text-green-800">Preço Final de Venda:</span>
-                        <span className="font-extrabold text-green-900">{financials.salePriceString}</span>
+                <div className="bg-slate-50 p-6 rounded-lg border border-slate-200">
+                    <h3 className="text-lg font-bold text-slate-700 mb-4">Resultado Final</h3>
+                    <div className="space-y-4">
+                        <div className="p-3 bg-white rounded-md border">
+                            <p className="text-sm text-slate-500">Custo Direto da Obra</p>
+                            <p className="text-xl font-bold text-slate-800">{financials.costString}</p>
+                        </div>
+                        <div className="p-4 bg-green-100 rounded-lg border border-green-200 text-center">
+                            <p className="text-sm font-semibold text-green-800 uppercase">Preço Final de Venda</p>
+                            <p className="text-3xl font-extrabold text-green-900 mt-1">{financials.salePriceString}</p>
+                        </div>
                     </div>
                 </div>
             </div>

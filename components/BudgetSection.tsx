@@ -1,3 +1,5 @@
+
+
 import React from 'react';
 import type { Budget, ConstructionTask } from '../types.ts';
 
@@ -15,9 +17,9 @@ const BudgetSection: React.FC<BudgetSectionProps> = ({ budget, tasks }) => {
     };
 
     const totalCalculated = budget.materials + budget.labor + (budget.managerFee || 0);
-    const materialPercent = budget.total > 0 ? (budget.materials / budget.total) * 100 : 0;
-    const laborPercent = budget.total > 0 ? (budget.labor / budget.total) * 100 : 0;
-    const managerFeePercent = budget.managerFee && budget.total > 0 ? (budget.managerFee / budget.total) * 100 : 0;
+    const materialPercent = (budget.materials / budget.total) * 100;
+    const laborPercent = (budget.labor / budget.total) * 100;
+    const managerFeePercent = budget.managerFee ? (budget.managerFee / budget.total) * 100 : 0;
     
     const costsByPhase = tasks.reduce((acc, task) => {
       if (!acc[task.phase]) {
@@ -32,12 +34,7 @@ const BudgetSection: React.FC<BudgetSectionProps> = ({ budget, tasks }) => {
         phase,
         materials: costsByPhase[phase].materials,
         labor: costsByPhase[phase].labor,
-        total: costsByPhase[phase].materials + costsByPhase[phase].labor,
     }));
-
-    const totalMaterials = phaseCostsArray.reduce((sum, p) => sum + p.materials, 0);
-    const totalLabor = phaseCostsArray.reduce((sum, p) => sum + p.labor, 0);
-    const grandTotal = totalMaterials + totalLabor;
 
     return (
         <div>
@@ -102,27 +99,17 @@ const BudgetSection: React.FC<BudgetSectionProps> = ({ budget, tasks }) => {
                                 <th className="px-4 py-3 text-left text-sm font-semibold text-slate-500 uppercase tracking-wider">Fase do Projeto</th>
                                 <th className="px-4 py-3 text-right text-sm font-semibold text-slate-500 uppercase tracking-wider">Custo de Materiais</th>
                                 <th className="px-4 py-3 text-right text-sm font-semibold text-slate-500 uppercase tracking-wider">Custo de Mão de Obra</th>
-                                <th className="px-4 py-3 text-right text-sm font-semibold text-slate-500 uppercase tracking-wider">Custo Total</th>
                             </tr>
                         </thead>
                         <tbody className="divide-y divide-slate-200">
-                            {phaseCostsArray.map(({ phase, materials, labor, total }) => (
+                            {phaseCostsArray.map(({ phase, materials, labor }) => (
                                 <tr key={phase} className="hover:bg-slate-50">
                                     <td className="px-4 py-3 text-base font-medium text-slate-900">{phase}</td>
                                     <td className="px-4 py-3 text-base text-slate-600 text-right whitespace-nowrap">{formatCurrency(materials)}</td>
                                     <td className="px-4 py-3 text-base text-slate-600 text-right whitespace-nowrap">{formatCurrency(labor)}</td>
-                                    <td className="px-4 py-3 text-base text-slate-800 font-semibold text-right whitespace-nowrap">{formatCurrency(total)}</td>
                                 </tr>
                             ))}
                         </tbody>
-                        <tfoot className="bg-slate-100 border-t-2 border-slate-300">
-                          <tr>
-                            <td className="px-4 py-3 text-right font-bold text-slate-800">Total Geral</td>
-                            <td className="px-4 py-3 text-base font-bold text-slate-800 text-right whitespace-nowrap">{formatCurrency(totalMaterials)}</td>
-                            <td className="px-4 py-3 text-base font-bold text-slate-800 text-right whitespace-nowrap">{formatCurrency(totalLabor)}</td>
-                            <td className="px-4 py-3 text-base font-bold text-slate-900 text-right whitespace-nowrap">{formatCurrency(grandTotal)}</td>
-                          </tr>
-                        </tfoot>
                     </table>
                 </div>
             </div>

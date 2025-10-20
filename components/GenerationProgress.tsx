@@ -1,8 +1,7 @@
-
 import React from 'react';
-import { CheckCircleIcon } from './icons/CheckCircleIcon.tsx';
-import { CircleIcon } from './icons/CircleIcon.tsx';
-import LoadingSpinner from './LoadingSpinner.tsx';
+import { CheckCircleIcon } from './icons/CheckCircleIcon';
+import { CircleIcon } from './icons/CircleIcon';
+import LoadingSpinner from './LoadingSpinner';
 
 interface GenerationProgressProps {
   steps: string[];

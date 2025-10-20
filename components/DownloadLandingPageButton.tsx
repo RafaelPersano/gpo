@@ -1,7 +1,6 @@
-
 import React from 'react';
-import type { LandingPageContent } from '../types.ts';
-import { DownloadIcon } from './icons/DownloadIcon.tsx';
+import type { LandingPageContent } from '../types';
+import { DownloadIcon } from './icons/DownloadIcon';
 
 interface DownloadLandingPageButtonProps {
   content: LandingPageContent;

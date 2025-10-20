@@ -1,28 +1,22 @@
-import React, { useState, useMemo } from 'react';
-import { CalculatorIcon } from './icons/CalculatorIcon.tsx';
+import React, { useMemo } from 'react';
+import { CalculatorIcon } from './icons/CalculatorIcon';
 
 interface BdiCalculatorProps {
   directCost: number;
+  indirectCosts: Record<string, string>;
+  setIndirectCosts: React.Dispatch<React.SetStateAction<Record<string, string>>>;
+  taxes: Record<string, string>;
+  setTaxes: React.Dispatch<React.SetStateAction<Record<string, string>>>;
+  profit: number;
+  setProfit: (newProfit: number) => void;
 }
 
-const BdiCalculator: React.FC<BdiCalculatorProps> = ({ directCost }) => {
-  const [indirectCosts, setIndirectCosts] = useState({
-    admin: '2',
-    insurance: '1',
-    guarantee: '0.5',
-    risk: '1.5',
-  });
-
-  const [taxes, setTaxes] = useState({
-    irpj: '1.2',
-    csll: '1.08',
-    pis: '0.65',
-    cofins: '3',
-    iss: '5',
-    inss: '4.5',
-  });
-
-  const [profit, setProfit] = useState('10');
+const BdiCalculator: React.FC<BdiCalculatorProps> = ({ 
+    directCost, 
+    indirectCosts, setIndirectCosts, 
+    taxes, setTaxes, 
+    profit, setProfit 
+}) => {
 
   const handleIndirectCostChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
@@ -35,7 +29,10 @@ const BdiCalculator: React.FC<BdiCalculatorProps> = ({ directCost }) => {
   };
 
   const handleProfitChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setProfit(e.target.value);
+    const value = parseFloat(e.target.value);
+    if (!isNaN(value)) {
+        setProfit(value);
+    }
   };
   
   const formatCurrency = (value: number) => new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(value);
@@ -43,11 +40,10 @@ const BdiCalculator: React.FC<BdiCalculatorProps> = ({ directCost }) => {
   const calculation = useMemo(() => {
     const parse = (val: string) => parseFloat(val) / 100 || 0;
 
-    const totalIndirect = parse(indirectCosts.admin) + parse(indirectCosts.insurance) + parse(indirectCosts.guarantee) + parse(indirectCosts.risk);
-    const totalTaxes = parse(taxes.irpj) + parse(taxes.csll) + parse(taxes.pis) + parse(taxes.cofins) + parse(taxes.iss) + parse(taxes.inss);
-    const profitMargin = parse(profit);
+    const totalIndirect = Object.values(indirectCosts).reduce<number>((sum, val) => sum + parse(String(val)), 0);
+    const totalTaxes = Object.values(taxes).reduce<number>((sum, val) => sum + parse(String(val)), 0);
+    const profitMargin = profit / 100 || 0;
 
-    // Standard BDI Formula: BDI = [ ( 1 + AC + S + G + R ) / ( 1 - ( I + L ) ) - 1 ] * 100
     const numerator = 1 + totalIndirect;
     const denominator = 1 - (totalTaxes + profitMargin);
     
@@ -86,7 +82,7 @@ const BdiCalculator: React.FC<BdiCalculatorProps> = ({ directCost }) => {
   return (
     <div>
         <h2 className="text-2xl font-bold text-slate-800 mb-2">Calculadora de BDI</h2>
-        <p className="text-slate-600 mb-6">Calcule o BDI (Benefícios e Despesas Indiretas) para determinar o preço final de venda da sua obra.</p>
+        <p className="text-slate-600 mb-6">Ajuste os componentes do BDI (Benefícios e Despesas Indiretas) para recalcular o preço final de venda da sua obra em tempo real.</p>
         
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
           {/* Input Section */}
@@ -125,7 +121,7 @@ const BdiCalculator: React.FC<BdiCalculatorProps> = ({ directCost }) => {
                  <div>
                     <h4 className="font-semibold text-slate-600 border-b border-slate-200 pb-2 mb-3">Lucro</h4>
                     <div className="max-w-xs">
-                        <InputField label="Lucro Previsto" name="profit" value={profit} onChange={handleProfitChange} />
+                        <InputField label="Lucro Previsto" name="profit" value={String(profit)} onChange={handleProfitChange} />
                     </div>
                 </div>
             </div>

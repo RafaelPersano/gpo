@@ -1,5 +1,5 @@
 
-export type Tab = 'overview' | 'proposal' | 'tables' | 'analysis' | 'spreadsheet' | 'excel' | 'admin';
+export type Tab = 'overview' | 'proposal' | 'tables' | 'analysis' | 'spreadsheet' | 'excel' | 'admin' | 'knowledge';
 
 export interface ConstructionTask {
   id: number;

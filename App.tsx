@@ -1,51 +1,56 @@
 
+
 import React, { useState, useMemo, useEffect } from 'react';
 import { Session } from '@supabase/supabase-js';
-import { supabase, isSupabaseConfigured } from './services/supabaseClient.ts';
-import * as db from './services/supabaseService.ts';
+import { supabase, isSupabaseConfigured } from './services/supabaseClient';
+import * as db from './services/supabaseService';
 import * as XLSX from 'xlsx';
 
-import Header from './components/Header.tsx';
-import Footer from './components/Footer.tsx';
-import Sidebar from './components/Sidebar.tsx';
-import InputSection from './components/InputSection.tsx';
-import PlanTable from './components/PlanTable.tsx';
-import BudgetSection from './components/BudgetSection.tsx';
-import MaterialDeliverySchedule from './components/MaterialDeliverySchedule.tsx';
-import PaymentSchedule from './components/PaymentSchedule.tsx';
-import GanttChart from './components/GanttChart.tsx';
-import AbcCurve from './components/AbcCurve.tsx';
-import ProjectEvolutionChart from './components/ProjectEvolutionChart.tsx';
-import ProposalSection from './components/ProposalSection.tsx';
-import MarketingPage from './components/MarketingPage.tsx';
-import BdiCalculator from './components/BdiCalculator.tsx';
-import UnitCostCalculator from './components/UnitCostCalculator.tsx';
-import CostBreakdownCalculator from './components/CostBreakdownCalculator.tsx';
-import DownloadEngineeringPdfButton from './components/DownloadEngineeringPdfButton.tsx';
-import DownloadInvestorPdfButton from './components/DownloadInvestorPdfButton.tsx';
-import MarketingSection from './components/MarketingSection.tsx';
-import Login from './components/Login.tsx';
-import GenerationProgress from './components/GenerationProgress.tsx';
-import PricingModal from './components/PricingModal.tsx';
-import PricingSection from './components/PricingSection.tsx';
-import FinancialAnalysisSection from './components/FinancialAnalysisSection.tsx';
-import ProjectManager from './components/ProjectManager.tsx';
-import InvestmentMatrix from './components/InvestmentMatrix.tsx';
-// FIX: Changed import from TaxAnalysisCivil to TaxSection and updated file path.
-import TaxSection from './components/TaxSection.tsx';
-import AdminPanel from './components/AdminPanel.tsx';
-import ConfigurationErrorModal from './components/ConfigurationErrorModal.tsx';
-import Spreadsheet from './components/Spreadsheet.tsx';
-import ExcelGenerator from './components/ExcelGenerator.tsx';
+import Header from './components/Header';
+import Footer from './components/Footer';
+import Sidebar from './components/Sidebar';
+import InputSection from './components/InputSection';
+import PlanTable from './components/PlanTable';
+import BudgetSection from './components/BudgetSection';
+import MaterialDeliverySchedule from './components/MaterialDeliverySchedule';
+import PaymentSchedule from './components/PaymentSchedule';
+import GanttChart from './components/GanttChart';
+import AbcCurve from './components/AbcCurve';
+import ProjectEvolutionChart from './components/ProjectEvolutionChart';
+import ProposalSection from './components/ProposalSection';
+import MarketingPage from './components/MarketingPage';
+import BdiCalculator from './components/BdiCalculator';
+import UnitCostCalculator from './components/UnitCostCalculator';
+import CostBreakdownCalculator from './components/CostBreakdownCalculator';
+import DownloadEngineeringPdfButton from './components/DownloadEngineeringPdfButton';
+import DownloadInvestorPdfButton from './components/DownloadInvestorPdfButton';
+import MarketingSection from './components/MarketingSection';
+import Login from './components/Login';
+import GenerationProgress from './components/GenerationProgress';
+import PricingModal from './components/PricingModal';
+import PricingSection from './components/PricingSection';
+import FinancialAnalysisSection from './components/FinancialAnalysisSection';
+import ProjectManager from './components/ProjectManager';
+import InvestmentMatrix from './components/InvestmentMatrix';
+import TaxSection from './components/TaxSection';
+import AdminPanel from './components/AdminPanel';
+import ConfigurationErrorModal from './components/ConfigurationErrorModal';
+import Spreadsheet from './components/Spreadsheet';
+import ExcelGenerator from './components/ExcelGenerator';
+import ShareProposalButton from './components/ShareProposalButton';
+import ProposalViewerPage from './components/ProposalViewerPage';
+import KnowledgeBase from './components/KnowledgeBase';
+import RealEstateProductCreator from './components/RealEstateProductCreator';
 
 
-import { generateFullProjectReport, generateProjectImages } from './services/geminiService.ts';
-import type { ConstructionPlan, MarketingMaterials, ConstructionTask, Tab } from './types.ts';
+import { generateFullProjectReport, generateProjectImages } from './services/geminiService';
+import type { ConstructionPlan, MarketingMaterials, ConstructionTask, Tab } from './types';
 
-import { SpreadsheetIcon } from './components/icons/SpreadsheetIcon.tsx';
-import { CogIcon } from './components/icons/CogIcon.tsx';
-import { DollarSignIcon } from './components/icons/DollarSignIcon.tsx';
-import { WandIcon } from './components/icons/WandIcon.tsx';
+import { SpreadsheetIcon } from './components/icons/SpreadsheetIcon';
+import { CogIcon } from './components/icons/CogIcon';
+import { DollarSignIcon } from './components/icons/DollarSignIcon';
+import { WandIcon } from './components/icons/WandIcon';
+import { PdfIcon } from './components/icons/PdfIcon';
 
 
 interface StampData {
@@ -63,6 +68,11 @@ type ProjectImages = Record<string, string>;
 interface UserProfileInfo {
   fullName: string | null;
   email: string | null;
+}
+
+interface AppRoute {
+  path: 'main' | 'proposal';
+  projectId: number | null;
 }
 
 const PROGRESS_STEPS = [
@@ -167,6 +177,7 @@ const transformPlanToSpreadsheetData = (plan: ConstructionPlan): string[][] => {
 
 
 const App: React.FC = () => {
+  const [route, setRoute] = useState<AppRoute>({ path: 'main', projectId: null });
   const [showApp, setShowApp] = useState(false);
   const [isGuest, setIsGuest] = useState(false);
   const [session, setSession] = useState<Session | null>(null);
@@ -234,6 +245,16 @@ const App: React.FC = () => {
     }
     console.error(`Erro ${context}:`, error);
   };
+  
+  useEffect(() => {
+    const path = window.location.pathname;
+    const match = path.match(/^\/proposal\/(\d+)$/);
+    if (match && match[1]) {
+        setRoute({ path: 'proposal', projectId: Number(match[1]) });
+    } else {
+        setRoute({ path: 'main', projectId: null });
+    }
+  }, []);
 
   useEffect(() => {
     if (!isSupabaseConfigured) return;
@@ -453,7 +474,9 @@ const App: React.FC = () => {
           setProjectSummary(projectSummary);
           setMarketingMaterials(marketingMaterials);
           
-          if (projectSummary) {
+          if (marketingMaterials?.stamped_facade_image) {
+            setStampedProjectImages({ facade: marketingMaterials.stamped_facade_image });
+          } else if (projectSummary) {
               setIsGeneratingImage(true);
               generateProjectImages(projectSummary)
                   .then(baseImages => {
@@ -495,47 +518,90 @@ const App: React.FC = () => {
     setActiveTab('overview');
 
     try {
-      if (isSupabaseConfigured) {
-        const newBalance = await db.decrementToken();
-        setTokenBalance(newBalance);
-      }
+        if (isSupabaseConfigured) {
+            const newBalance = await db.decrementToken();
+            setTokenBalance(newBalance);
+        }
 
-      const budget = parseFloat(totalBudget);
-      if (isNaN(budget) || budget <= 0) throw new Error("Por favor, insira uma verba total válida.");
-      const fee = projectManagerFee ? parseFloat(projectManagerFee) : null;
-      if (fee !== null && (isNaN(fee) || fee < 0)) throw new Error("A taxa do gestor, se informada, deve ser um número válido.");
+        const budget = parseFloat(totalBudget);
+        if (isNaN(budget) || budget <= 0) throw new Error("Por favor, insira uma verba total válida.");
+        const fee = projectManagerFee ? parseFloat(projectManagerFee) : null;
+        if (fee !== null && (isNaN(fee) || fee < 0)) throw new Error("A taxa do gestor, se informada, deve ser um número válido.");
       
-      const report = await generateFullProjectReport(
-        userInput, budget, fee, startDate, endDate, payMaterialsWithCard, responsibleProfessional, clientName
-      );
-      
-      setProjectPlan(report.plan);
-      setOriginalProposalText(report.proposalText);
-      setProjectSummary(report.projectSummary);
-      setMarketingMaterials(report.marketingMaterials);
-      
-      if (isSupabaseConfigured) {
-        setCurrentStepIndex(5);
-        const projectInputs = {
-            userInput, clientName, totalBudget: budget, startDate, endDate, responsibleProfessional
-        };
-        const newProject = await db.saveFullProject(
-            projectInputs, report.plan, report.projectSummary, report.proposalText, report.marketingMaterials
+        setCurrentStepIndex(0); // Analisando
+        const report = await generateFullProjectReport(
+            userInput, budget, fee, startDate, endDate, payMaterialsWithCard, responsibleProfessional, clientName
         );
         
-        await fetchProjects();
-        setSelectedProjectId(newProject.id);
-      }
+        setCurrentStepIndex(1); // Gerando cronograma
+        setProjectPlan(report.plan);
+        setOriginalProposalText(report.proposalText);
+        setCurrentStepIndex(2); // Calculando orçamento
+        setProjectSummary(report.projectSummary);
+        setMarketingMaterials(report.marketingMaterials);
+      
+        setCurrentStepIndex(4); // Criando kit de marketing
+        setIsGeneratingImage(true);
+        const baseImages = await generateProjectImages(report.projectSummary)
+            .catch(err => {
+                console.warn("Image generation failed", err);
+                return null;
+            });
+        setBaseProjectImages(baseImages);
+        setIsGeneratingImage(false);
 
-      setIsGeneratingImage(true);
-      generateProjectImages(report.projectSummary)
-        .then(baseImages => {
-            setBaseProjectImages(baseImages);
-        })
-        .catch(err => {
-          console.warn("Image generation failed", err);
-        })
-        .finally(() => setIsGeneratingImage(false));
+        const directCostFromReport = report.plan.tasks.reduce((sum, task) => sum + task.costMaterials + task.costLabor, 0);
+        
+        const tempFinancials = (() => {
+            const parse = (val: string) => parseFloat(val) / 100 || 0;
+            const totalIndirect = Object.values(bdiIndirectCosts).reduce<number>((sum, val) => sum + parse(String(val)), 0);
+            const totalTaxesBDI = Object.values(bdiTaxes).reduce<number>((sum, val) => sum + parse(String(val)), 0);
+            const profitMargin = netProfitMargin / 100;
+            const denominator = 1 - (totalTaxesBDI + profitMargin);
+            if (denominator <= 0 || directCostFromReport <= 0) return null;
+            
+            const bdiRate = (((1 + totalIndirect) / denominator) - 1);
+            const finalPrice = directCostFromReport * (1 + bdiRate);
+            const netProfitValue = finalPrice * profitMargin;
+            const roi = (netProfitValue / directCostFromReport) * 100;
+            const grossMarginValue = finalPrice - directCostFromReport;
+            const indirectCostsValue = directCostFromReport * totalIndirect;
+            const ebitda = grossMarginValue - indirectCostsValue;
+            const formatCurrency = (value: number) => new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(value);
+
+            return {
+                projectName: report.marketingMaterials?.commercialNames[0] || 'Projeto de Construção',
+                budgetString: formatCurrency(report.plan.budget.total),
+                costString: formatCurrency(directCostFromReport),
+                salePriceString: formatCurrency(finalPrice),
+                profitString: formatCurrency(netProfitValue),
+                roiString: `${roi.toFixed(1)}%`,
+                ebitdaString: formatCurrency(ebitda),
+            };
+        })();
+
+        let stampedFacadeForDb: string | null = null;
+        if (baseImages?.facade && tempFinancials) {
+            stampedFacadeForDb = await addStampAndLogoToImage(baseImages.facade, tempFinancials);
+            setStampedProjectImages({ ...baseImages, facade: stampedFacadeForDb });
+        } else if (baseImages) {
+            setStampedProjectImages(baseImages);
+        }
+
+        if (isSupabaseConfigured) {
+            setCurrentStepIndex(5);
+            const projectInputs = { userInput, clientName, totalBudget: budget, startDate, endDate, responsibleProfessional };
+            const finalMarketingMaterials = { 
+                ...report.marketingMaterials,
+                stamped_facade_image: stampedFacadeForDb 
+            };
+            const newProject = await db.saveFullProject(
+                projectInputs, report.plan, report.projectSummary, report.proposalText, finalMarketingMaterials
+            );
+            await fetchProjects();
+            setSelectedProjectId(newProject.id);
+        }
+        setCurrentStepIndex(6);
 
     } catch (err) {
       handleApiError(err, 'ao gerar plano');
@@ -758,143 +824,196 @@ const App: React.FC = () => {
     Object.entries(financials.bdiBreakdown.indirectCosts).forEach(([key, value]) => bdiData.push(['Custo Indireto', key, String(value)]));
     Object.entries(financials.bdiBreakdown.taxes).forEach(([key, value]) => bdiData.push(['Imposto', key, String(value)]));
     bdiData.push(['Margem', 'Lucro Líquido', financials.bdiBreakdown.netProfit]);
-    const wsBdi = XLSX.utils.aoa_to_sheet(bdiData);
-    wsBdi['!cols'] = [{wch: 20}, {wch: 25}, {wch: 15}];
-    XLSX.utils.book_append_sheet(wb, wsBdi, 'Composição do BDI');
+    const wsBDI = XLSX.utils.aoa_to_sheet(bdiData);
+    wsBDI['!cols'] = [{wch: 20}, {wch: 20}, {wch: 15}];
+    XLSX.utils.book_append_sheet(wb, wsBDI, 'Detalhes do BDI');
 
-    XLSX.writeFile(wb, 'plano_de_obra_completo.xlsx');
-};
-  
-  const handleLogout = async () => {
-    const { error } = await supabase.auth.signOut();
-    if (error) console.error("Error logging out:", error);
-    setShowApp(false);
-    setIsGuest(false);
-    setUserRole(null);
+    XLSX.writeFile(wb, 'relatorio_completo_obra.xlsx');
   };
 
-  const handleGoToApp = () => {
-      setShowApp(true);
+  if (route.path === 'proposal' && route.projectId) {
+    return <ProposalViewerPage projectId={route.projectId} />;
   }
 
-  const handleGoToHome = () => {
-      setShowApp(false);
-      setIsGuest(false);
-      handleNewProject();
-  }
+  const handleLoginStart = () => {
+    setShowApp(true);
+    setInitialView('create'); // Go to create project view on login
+  };
 
-  const handleEnterDemoMode = () => {
+  const handleEnterDemo = () => {
     setIsGuest(true);
     setShowApp(true);
+    setInitialView('create');
   };
-  
-  const renderContent = () => {
-    if (!showApp) {
-        return <MarketingPage onStart={handleGoToApp} isBackendConfigured={isSupabaseConfigured} />;
-    }
 
-    if (isAuthenticated || isGuest) {
-        return (
-            <div className="flex flex-row">
-                <Sidebar activeTab={activeTab} setActiveTab={setActiveTab} userRole={userRole} />
-                <main className="flex-grow p-4 md:p-8 overflow-y-auto h-screen">
-                    {isSupabaseConfigured && isAuthenticated && (
-                        <ProjectManager
-                            projects={projects}
-                            selectedProjectId={selectedProjectId}
-                            onSelectProject={handleSelectProject}
-                            onNewProject={handleNewProject}
-                        />
-                    )}
+  const handleGoToHome = () => {
+    setShowApp(false);
+    setIsGuest(false);
+  }
 
-                    {isLoading && (
-                      <div className="text-center p-12">
-                          <GenerationProgress steps={PROGRESS_STEPS} currentStepIndex={currentStepIndex} />
-                      </div>
-                    )}
-                    
-                    {error && <div className="container mx-auto mt-8 p-4 bg-red-100 text-red-700 border border-red-200 rounded-lg text-center max-w-4xl">{error}</div>}
+  const handleLogout = async () => {
+    await supabase.auth.signOut();
+    setShowApp(false);
+    setIsGuest(false);
+    setSession(null);
+    resetStateToNewProject();
+  };
 
-                    {!isLoading && !error && (
-                        <>
-                            {projectPlan && financials ? (
-                                // --- STATE 1: PROJECT IS LOADED ---
-                                <div id="results" className="max-w-7xl mx-auto space-y-8">
-                                    <div className="bg-white p-4 md:p-6 rounded-2xl border border-slate-200 shadow-xl">
-                                        <div className="flex flex-wrap justify-between items-center gap-4 mb-6">
-                                            <div>
-                                                <h2 className="text-2xl md:text-3xl font-bold text-slate-800">{marketingMaterials?.commercialNames[0] || 'Detalhes do Projeto'}</h2>
-                                                {isGeneratingImage && <p className="text-sm text-slate-500 animate-pulse mt-1">Gerando imagens do projeto...</p>}
-                                            </div>
-                                            <div className="flex items-center flex-wrap gap-3">
-                                                <button onClick={handleExportToCsv} className="inline-flex items-center px-4 py-2 bg-green-600 text-white font-bold rounded-lg shadow-sm hover:bg-green-700"><SpreadsheetIcon className="w-5 h-5 mr-2" />Planilha (Excel)</button>
-                                                <DownloadEngineeringPdfButton projectPlan={projectPlan} icon={<CogIcon className="w-5 h-5 mr-2" />} />
-                                                <DownloadInvestorPdfButton projectPlan={projectPlan} financials={financials} proposalText={displayProposalText} projectImages={stampedProjectImages} responsibleProfessional={responsibleProfessional} clientName={clientName} icon={<DollarSignIcon className="w-5 h-5 mr-2" />} projectDurationInDays={projectDurationInDays} />
-                                            </div>
-                                        </div>
+  if (!showApp) {
+    return (
+      <div className="min-h-screen flex flex-col">
+        <Header onStart={handleLoginStart} isAppView={false} isAuthenticated={false} onLogout={handleLogout} onGoToHome={handleGoToHome} tokenBalance={null} userProfileInfo={userProfileInfo} userRole={userRole} isSupabaseConfigured={isSupabaseConfigured} onEnterDemoMode={handleEnterDemo} />
+        <main className="flex-grow">
+          <MarketingPage onStart={handleLoginStart} isBackendConfigured={isSupabaseConfigured} />
+        </main>
+        <Footer />
+      </div>
+    );
+  }
 
-                                        <div className="space-y-12">
-                                            {activeTab === 'overview' && (<>
-                                                <BudgetSection budget={projectPlan.budget} tasks={projectPlan.tasks} />
-                                                <PricingSection financials={financials} netProfitMargin={netProfitMargin} onMarginChange={handleNetProfitMarginChange} />
-                                                <GanttChart tasks={projectPlan.tasks} />
-                                                <ProjectEvolutionChart tasks={projectPlan.tasks} projectStartDate={projectPlan.projectStartDate} projectEndDate={projectPlan.projectEndDate} />
-                                            </>)}
-                                            {activeTab === 'proposal' && marketingMaterials && (<>
-                                                <ProposalSection proposalText={displayProposalText} onTextChange={setEditedProposalText} projectImages={stampedProjectImages} onRegenerateImage={handleRegenerateImage} isGeneratingImage={isGeneratingImage} financials={financials} projectPlan={projectPlan} projectDurationInDays={projectDurationInDays} />
-                                                <MarketingSection materials={marketingMaterials} projectImages={stampedProjectImages} />
-                                            </>)}
-                                            {activeTab === 'tables' && (<div className="space-y-12">
-                                                <PlanTable tasks={projectPlan.tasks} onTaskUpdate={handleTaskUpdate} />
-                                                <MaterialDeliverySchedule deliveries={projectPlan.materialDeliveries} />
-                                                <PaymentSchedule schedule={projectPlan.paymentSchedule} />
-                                            </div>)}
-                                            {activeTab === 'analysis' && (<div className="space-y-12">
-                                                <FinancialAnalysisSection financials={financials} />
-                                                <InvestmentMatrix financials={financials} projectDurationInDays={projectDurationInDays} />
-                                                <TaxSection financials={financials} projectPlan={projectPlan} />
-                                                <AbcCurve tasks={projectPlan.tasks} />
-                                                <BdiCalculator directCost={directCost} indirectCosts={bdiIndirectCosts} setIndirectCosts={setBdiIndirectCosts} taxes={bdiTaxes} setTaxes={setBdiTaxes} profit={netProfitMargin} setProfit={handleNetProfitMarginChange} />
-                                                <UnitCostCalculator />
-                                                <CostBreakdownCalculator />
-                                            </div>)}
-                                            {activeTab === 'spreadsheet' && <Spreadsheet data={spreadsheetData} onDataChange={setSpreadsheetData} />}
-                                            {activeTab === 'excel' && <ExcelGenerator />}
-                                            {activeTab === 'admin' && userRole === 'admin' && <AdminPanel />}
-                                        </div>
-                                    </div>
-                                </div>
-                            ) : (
-                                // --- STATE 2: NO PROJECT LOADED (Initial View) ---
-                                <div className="space-y-8">
-                                     <div className="max-w-4xl mx-auto p-6 md:p-8 bg-white border border-slate-200 rounded-2xl shadow-xl">
-                                        <div className="bg-white p-3 md:p-4 rounded-full border border-slate-200 shadow-lg flex flex-wrap justify-center gap-2 max-w-md mx-auto mb-8">
-                                            <button onClick={() => setInitialView('create')} className={`flex items-center px-4 py-2 text-sm font-medium rounded-md transition-colors ${initialView === 'create' ? 'bg-blue-600 text-white shadow' : 'text-slate-600 hover:bg-slate-200'}`}><WandIcon className="w-5 h-5"/><span className="ml-2">Criar Projeto</span></button>
-                                            <button onClick={() => setInitialView('excel')} className={`flex items-center px-4 py-2 text-sm font-medium rounded-md transition-colors ${initialView === 'excel' ? 'bg-blue-600 text-white shadow' : 'text-slate-600 hover:bg-slate-200'}`}><SpreadsheetIcon className="w-5 h-5"/><span className="ml-2">Gerador Excel</span></button>
-                                        </div>
-                                        {initialView === 'excel' ? <ExcelGenerator /> : <InputSection userInput={userInput} onUserInputChange={(e) => setUserInput(e.target.value)} clientName={clientName} onClientNameChange={(e) => setClientName(e.target.value)} totalBudget={totalBudget} onTotalBudgetChange={(e) => setTotalBudget(e.target.value)} projectManagerFee={projectManagerFee} onProjectManagerFeeChange={(e) => setProjectManagerFee(e.target.value)} startDate={startDate} onStartDateChange={(e) => setStartDate(e.target.value)} endDate={endDate} onEndDateChange={(e) => setEndDate(e.target.value)} responsibleProfessional={responsibleProfessional} onResponsibleProfessionalChange={(e) => setResponsibleProfessional(e.target.value)} payMaterialsWithCard={payMaterialsWithCard} onPayMaterialsWithCardChange={(e) => setPayMaterialsWithCard(e.target.checked)} onGenerate={handleGenerate} isLoading={isLoading}/>}
-                                    </div>
-                                </div>
-                            )}
-                        </>
-                    )}
-                </main>
-            </div>
-        );
-    }
-    
-    return <Login onGoToHome={handleGoToHome} isBackendConfigured={isSupabaseConfigured} onEnterDemoMode={handleEnterDemoMode} />;
+  if (!isAuthenticated && !isGuest) {
+    return (
+      <div className="min-h-screen flex flex-col bg-slate-50">
+        <Header onStart={handleLoginStart} isAppView={true} isAuthenticated={false} onLogout={handleLogout} onGoToHome={handleGoToHome} tokenBalance={null} userProfileInfo={userProfileInfo} userRole={userRole} isSupabaseConfigured={isSupabaseConfigured} onEnterDemoMode={handleEnterDemo} />
+        <main className="flex-grow">
+          <Login onGoToHome={handleGoToHome} isBackendConfigured={isSupabaseConfigured} onEnterDemoMode={handleEnterDemo} />
+        </main>
+      </div>
+    );
   }
 
   return (
-    <div className="min-h-screen bg-slate-50 font-sans text-slate-800 flex flex-col">
-      <ConfigurationErrorModal show={showConfigErrorModal} onClose={() => setShowConfigErrorModal(false)} />
-      <PricingModal show={showPricingModal} onClose={() => setShowPricingModal(false)} onPurchasePlan={handlePurchasePlan} />
-      <Header onStart={handleGoToApp} isAppView={showApp} isAuthenticated={isAuthenticated} onLogout={handleLogout} onGoToHome={handleGoToHome} tokenBalance={tokenBalance} userProfileInfo={userProfileInfo} userRole={userRole} isSupabaseConfigured={isSupabaseConfigured} onEnterDemoMode={handleEnterDemoMode} />
-      <main className="flex-grow">
-        {renderContent()}
-      </main>
-      {!showApp && <Footer />}
+    <div className="min-h-screen bg-slate-100">
+      <Header onStart={handleLoginStart} isAppView={true} isAuthenticated={isAuthenticated} onLogout={handleLogout} onGoToHome={handleGoToHome} tokenBalance={tokenBalance} userProfileInfo={userProfileInfo} userRole={userRole} isSupabaseConfigured={isSupabaseConfigured} onEnterDemoMode={handleEnterDemo} />
+      <div className="flex">
+        {projectPlan && (
+          <Sidebar activeTab={activeTab} setActiveTab={setActiveTab} userRole={userRole}/>
+        )}
+        <main className="flex-grow p-4 md:p-8">
+            {isSupabaseConfigured && isAuthenticated && (
+                <ProjectManager projects={projects} selectedProjectId={selectedProjectId} onSelectProject={handleSelectProject} onNewProject={handleNewProject} />
+            )}
+            
+            {error && (
+              <div className="bg-red-100 border border-red-300 text-red-800 px-4 py-3 rounded-lg relative mb-6" role="alert">
+                <strong className="font-bold">Erro: </strong>
+                <span className="block sm:inline">{error}</span>
+                <span className="absolute top-0 bottom-0 right-0 px-4 py-3" onClick={() => setError(null)}>
+                  <svg className="fill-current h-6 w-6 text-red-500" role="button" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20"><title>Close</title><path d="M14.348 14.849a1.2 1.2 0 0 1-1.697 0L10 11.819l-2.651 3.029a1.2 1.2 0 1 1-1.697-1.697l2.758-3.15-2.759-3.152a1.2 1.2 0 1 1 1.697-1.697L10 8.183l2.651-3.031a1.2 1.2 0 1 1 1.697 1.697l-2.758 3.152 2.758 3.15a1.2 1.2 0 0 1 0 1.698z"/></svg>
+                </span>
+              </div>
+            )}
+          
+          {isLoading && <GenerationProgress steps={PROGRESS_STEPS} currentStepIndex={currentStepIndex} />}
+
+          {!projectPlan && !isLoading && (
+            <div className="max-w-3xl mx-auto bg-white p-6 md:p-8 rounded-2xl shadow-lg border border-slate-200">
+                {initialView === 'create' || !projectPlan ? (
+                    <InputSection 
+                        userInput={userInput} onUserInputChange={e => setUserInput(e.target.value)}
+                        clientName={clientName} onClientNameChange={e => setClientName(e.target.value)}
+                        totalBudget={totalBudget} onTotalBudgetChange={e => setTotalBudget(e.target.value)}
+                        projectManagerFee={projectManagerFee} onProjectManagerFeeChange={e => setProjectManagerFee(e.target.value)}
+                        startDate={startDate} onStartDateChange={e => setStartDate(e.target.value)}
+                        endDate={endDate} onEndDateChange={e => setEndDate(e.target.value)}
+                        responsibleProfessional={responsibleProfessional} onResponsibleProfessionalChange={e => setResponsibleProfessional(e.target.value)}
+                        payMaterialsWithCard={payMaterialsWithCard} onPayMaterialsWithCardChange={e => setPayMaterialsWithCard(e.target.checked)}
+                        onGenerate={handleGenerate} 
+                        isLoading={isLoading} 
+                    />
+                ) : (
+                    <ExcelGenerator />
+                )}
+            </div>
+          )}
+          
+          {projectPlan && financials && (
+            <div className="space-y-12">
+                <div className="flex justify-between items-center bg-white p-4 rounded-xl shadow-md border border-slate-200">
+                    <div>
+                        <h1 className="text-2xl font-bold text-slate-800">{marketingMaterials?.commercialNames[0] || 'Plano de Obra'}</h1>
+                        <p className="text-slate-500">{projectPlan.projectStartDate} a {projectPlan.projectEndDate}</p>
+                    </div>
+                    <div className="flex items-center gap-4">
+                        {selectedProjectId && <ShareProposalButton projectId={selectedProjectId} />}
+                        <DownloadEngineeringPdfButton projectPlan={projectPlan} icon={<PdfIcon className="w-5 h-5 mr-2" />} />
+                        <DownloadInvestorPdfButton projectPlan={projectPlan} financials={financials} proposalText={displayProposalText} projectImages={stampedProjectImages} responsibleProfessional={responsibleProfessional} clientName={clientName} icon={<PdfIcon className="w-5 h-5 mr-2" />} projectDurationInDays={projectDurationInDays} />
+                        <button onClick={handleExportToCsv} className="inline-flex items-center px-4 py-2 bg-green-600 text-white font-bold rounded-lg shadow-sm hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 transition-colors">
+                           <SpreadsheetIcon className="w-5 h-5 mr-2" />
+                           Exportar (.xlsx)
+                        </button>
+                    </div>
+                </div>
+
+                {activeTab === 'overview' && (
+                    <div className="space-y-12">
+                        <BudgetSection budget={projectPlan.budget} tasks={projectPlan.tasks} />
+                        <GanttChart tasks={projectPlan.tasks} />
+                    </div>
+                )}
+                {activeTab === 'proposal' && marketingMaterials && (
+                     <div className="grid grid-cols-1 xl:grid-cols-3 gap-8 items-start">
+                        <div className="xl:col-span-2">
+                             <ProposalSection 
+                                proposalText={displayProposalText} 
+                                onTextChange={setEditedProposalText}
+                                projectImages={stampedProjectImages}
+                                onRegenerateImage={handleRegenerateImage}
+                                isGeneratingImage={isGeneratingImage || !stampedProjectImages}
+                                financials={financials}
+                                projectPlan={projectPlan}
+                                projectDurationInDays={projectDurationInDays}
+                            />
+                        </div>
+                        <div className="space-y-8">
+                             <PricingSection financials={financials} netProfitMargin={netProfitMargin} onMarginChange={handleNetProfitMarginChange} />
+                             <MarketingSection materials={marketingMaterials} projectImages={baseProjectImages} />
+                        </div>
+                    </div>
+                )}
+                {activeTab === 'tables' && (
+                    <div className="space-y-12">
+                        <PlanTable tasks={projectPlan.tasks} onTaskUpdate={handleTaskUpdate} />
+                        <MaterialDeliverySchedule deliveries={projectPlan.materialDeliveries} />
+                        <PaymentSchedule schedule={projectPlan.paymentSchedule} />
+                    </div>
+                )}
+                 {activeTab === 'analysis' && (
+                    <div className="space-y-12">
+                         <RealEstateProductCreator />
+                         <UnitCostCalculator />
+                         <CostBreakdownCalculator />
+                         {projectPlan && financials && (
+                            <>
+                                 <FinancialAnalysisSection financials={financials} />
+                                 <BdiCalculator directCost={directCost} indirectCosts={bdiIndirectCosts} setIndirectCosts={setBdiIndirectCosts} taxes={bdiTaxes} setTaxes={setBdiTaxes} profit={netProfitMargin} setProfit={handleNetProfitMarginChange} />
+                                 <InvestmentMatrix financials={financials} projectDurationInDays={projectDurationInDays} />
+                                 <TaxSection financials={financials} projectPlan={projectPlan} />
+                                 <AbcCurve tasks={projectPlan.tasks} />
+                                 <ProjectEvolutionChart tasks={projectPlan.tasks} projectStartDate={projectPlan.projectStartDate} projectEndDate={projectPlan.projectEndDate} />
+                            </>
+                         )}
+                    </div>
+                )}
+                {activeTab === 'knowledge' && (
+                    <KnowledgeBase />
+                )}
+                {activeTab === 'spreadsheet' && (
+                    <Spreadsheet data={spreadsheetData} onDataChange={setSpreadsheetData} />
+                )}
+                {activeTab === 'excel' && (
+                    <ExcelGenerator />
+                )}
+                {activeTab === 'admin' && userRole === 'admin' && (
+                    <AdminPanel />
+                )}
+            </div>
+          )}
+
+           {showPricingModal && <PricingModal show={showPricingModal} onClose={() => setShowPricingModal(false)} onPurchasePlan={handlePurchasePlan} />}
+           <ConfigurationErrorModal show={showConfigErrorModal} onClose={() => setShowConfigErrorModal(false)} />
+        </main>
+      </div>
     </div>
   );
 };

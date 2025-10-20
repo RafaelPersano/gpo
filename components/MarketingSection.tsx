@@ -1,16 +1,17 @@
-
 import React from 'react';
-import type { MarketingMaterials } from '../types.ts';
-import CopyButton from './CopyButton.tsx';
-import { ClockIcon } from './icons/ClockIcon.tsx';
-import { TargetIcon } from './icons/TargetIcon.tsx';
-import { RocketIcon } from './icons/RocketIcon.tsx';
-import { ImageIcon } from './icons/ImageIcon.tsx';
-import DownloadLandingPageButton from './DownloadLandingPageButton.tsx';
+import type { MarketingMaterials } from '../types';
+import CopyButton from './CopyButton';
+import { ClockIcon } from './icons/ClockIcon';
+import { TargetIcon } from './icons/TargetIcon';
+import { RocketIcon } from './icons/RocketIcon';
+import { ImageIcon } from './icons/ImageIcon';
+import DownloadLandingPageButton from './DownloadLandingPageButton';
+
+type ProjectImages = Record<string, string>;
 
 interface MarketingSectionProps {
   materials: MarketingMaterials;
-  projectImage: string | null;
+  projectImages: ProjectImages | null;
 }
 
 const benefitIcons = {
@@ -19,8 +20,9 @@ const benefitIcons = {
     2: <RocketIcon className="w-8 h-8 text-white" />,
 };
 
-const MarketingSection: React.FC<MarketingSectionProps> = ({ materials, projectImage }) => {
+const MarketingSection: React.FC<MarketingSectionProps> = ({ materials, projectImages }) => {
   const { commercialNames, instagramPost, linkedInPost, ctas, landingPageContent } = materials;
+  const facadeImage = projectImages?.facade || null;
 
   const Card: React.FC<{title: string, children: React.ReactNode, actions?: React.ReactNode}> = ({ title, children, actions }) => (
     <div className="bg-white rounded-lg border border-slate-200 shadow-sm overflow-hidden flex flex-col">
@@ -36,13 +38,17 @@ const MarketingSection: React.FC<MarketingSectionProps> = ({ materials, projectI
 
   const SocialPostCard: React.FC<{title: string, postText: string}> = ({ title, postText }) => (
      <Card title={title} actions={<CopyButton text={postText} />}>
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 items-start">
-            {projectImage && (
-                <div className="rounded-md overflow-hidden border border-slate-200">
-                    <img src={projectImage} alt="Imagem do projeto para post" className="w-full h-auto object-cover aspect-square" />
+        <div className="space-y-4">
+            <p className="whitespace-pre-wrap font-sans text-sm">{postText}</p>
+            {projectImages && Object.keys(projectImages).length > 0 && (
+                <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
+                    {Object.entries(projectImages).map(([key, src]) => (
+                        <div key={key} className="rounded-md overflow-hidden border border-slate-200">
+                             <img src={src} alt={`Imagem do projeto para post: ${key}`} className="w-full h-auto object-cover aspect-square" />
+                        </div>
+                    ))}
                 </div>
             )}
-            <p className={`whitespace-pre-wrap font-sans text-sm ${!projectImage ? 'md:col-span-2' : ''}`}>{postText}</p>
         </div>
     </Card>
   );
@@ -77,11 +83,11 @@ const MarketingSection: React.FC<MarketingSectionProps> = ({ materials, projectI
       <div>
         <Card 
             title="Conteúdo para Landing Page"
-            actions={<DownloadLandingPageButton content={landingPageContent} projectImage={projectImage} />}
+            actions={<DownloadLandingPageButton content={landingPageContent} projectImage={facadeImage} />}
         >
-            <div className={`p-8 md:p-12 rounded-xl shadow-2xl bg-slate-800 text-white text-center ${!projectImage && 'bg-slate-800'}`}
-                 style={projectImage ? {
-                    backgroundImage: `linear-gradient(rgba(2, 6, 23, 0.7), rgba(2, 6, 23, 0.7)), url(${projectImage})`,
+            <div className={`p-8 md:p-12 rounded-xl shadow-2xl bg-slate-800 text-white text-center ${!facadeImage && 'bg-slate-800'}`}
+                 style={facadeImage ? {
+                    backgroundImage: `linear-gradient(rgba(2, 6, 23, 0.7), rgba(2, 6, 23, 0.7)), url(${facadeImage})`,
                     backgroundSize: 'cover',
                     backgroundPosition: 'center',
                  } : {}}
