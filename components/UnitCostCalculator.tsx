@@ -1,7 +1,7 @@
 import React, { useState, useMemo } from 'react';
-import { cubData, brazilianStates, cubStandardTypes, CubStandardCode, availableStates } from '../data/cubData.ts';
-import { RulerIcon } from './icons/RulerIcon.tsx';
-import { SpreadsheetIcon } from './icons/SpreadsheetIcon.tsx';
+import { cubData, brazilianStates, cubStandardTypes, CubStandardCode, availableStates } from '../data/cubData';
+import { RulerIcon } from './icons/RulerIcon';
+import { SpreadsheetIcon } from './icons/SpreadsheetIcon';
 
 const UnitCostCalculator: React.FC = () => {
   const [selectedState, setSelectedState] = useState<keyof typeof cubData>('SP');
@@ -69,7 +69,7 @@ const UnitCostCalculator: React.FC = () => {
   }, {} as Record<string, typeof cubStandardTypes>);
 
   return (
-    <div className="max-w-5xl mx-auto bg-white border border-slate-200 rounded-2xl shadow-xl p-6 md:p-8">
+    <div className="bg-white border border-slate-200 rounded-2xl shadow-xl p-6 md:p-8">
       <h3 className="text-2xl font-bold text-slate-800 mb-2 flex items-center">
         <RulerIcon className="w-6 h-6 mr-3 text-blue-600" />
         Calculadora de Custo de Obra por m² (CUB)
